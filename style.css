@@ -1,0 +1,48 @@
+@aimport url(https://reset5.googlecode.com/hg/reset.min.css);
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+.auth {
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+ol.cards {
+	list-style: none;
+}
+li .card {
+	display: inline-block;
+	width: 12em;
+	height: 8em;
+	margin: 0 1em 1em 0;
+	border: 1px solid silver;
+}
+
+/* Card type translates to background color */
+.type-task {
+	background-color: #F7F7BE;
+}
+
+.type-bug {
+	background-color: #FAA475;
+}
+
+.type-extra {
+	background-color: #89FA92;
+}
+
+.type-other {
+	background-color: #FA89F1;
+}
+
+/* */
+table.board th.state, table.board td.state {
+	width: 14em;
+	padding: 0em 1em;
+	text-transform: capitalize;
+	border: 1px dotted silver;
+}

@@ -1,0 +1,9 @@
+{
+  "firebase": "trenches",
+  "public": ".",
+  "ignore": [
+    "firebase.json",
+    "**/.*",
+    "**/node_modules/**"
+  ]
+}
