@@ -37,24 +37,33 @@ app.controller('BoardCtrl', function($scope, $rootScope, $firebase, $routeParams
 	}
 });
 
+
+var isIE9 = (navigator.appVersion.indexOf('MSIE 9.0') >= 0);
 app.directive('draggable', function($document) {
 	return function(scope, element, attr) {
 		element.attr('draggable', 'true');
-		element.bind('dragstart', function(event) {
-			event.dataTransfer.setData('text/plain', event.target.id)
+		if (isIE9) {
+			element.prepend("<a class='draghandle' draggable='true' id='"+scope.card.$id+"' href='#'><i class='fa fa-arrows'></i></a>");
+		}
+		element.bind('dragstart', function(e) {
+			e.dataTransfer.setData('text', scope.card.$id)
 		});
 	}
 });
 app.directive('droparea', function() {
 	return function(scope, element, attr, ctrl) {
-		element.bind('dragover', function(event) {
-			event.preventDefault();
+		element.bind('dragover', function(e) {
+			e.preventDefault();
 		});
-		element.bind('drop', function(event) {
-			var id = event.dataTransfer.getData("text/plain");
-			var state = event.target.getAttribute('state');
-			scope.updateCard(id, { state: state });
-			event.preventDefault();
+		element.bind('drop', function(e) {
+			var id = e.dataTransfer.getData("text");
+			var state = e.target.getAttribute('state');
+			if (id && state) {
+				scope.updateCard(id, { state: state });
+			} 
+			if (e.stopPropagation) e.stopPropagation();
+			if (e.preventDefault) e.preventDefault();
+			return false;
 		});
 	}
 });

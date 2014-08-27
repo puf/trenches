@@ -46,3 +46,7 @@ table.board th.state, table.board td.state {
 	text-transform: capitalize;
 	border: 1px dotted silver;
 }
+
+.draghandle {
+	float: right;
+}
