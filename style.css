@@ -14,7 +14,7 @@
 ol.cards {
 	list-style: none;
 }
-li .card {
+.card {
 	display: inline-block;
 	width: 12em;
 	height: 8em;

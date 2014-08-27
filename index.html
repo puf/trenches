@@ -13,7 +13,7 @@
 </head>
 <body>
 	<h1>
-		<a ng-href="/">Trenches</a>
+		<i class='fa fa-credit-card' ></i> <a ng-href="/">Trenches</a>
 	</h1>
 	<div ng-controller="TrenchesCtrl" class='auth'>
 		<div ng-show="auth.user">
@@ -47,16 +47,12 @@
 				<th class='state' ng-repeat='state in states'>{{state}}</th>
 			</tr>
 			<tr class='story'>
-				<td class='state state-{{state}}' ng-repeat='state in states'>
-					<ol class='cards'>
-						<li ng-repeat='card in cardsByState[state]'>
-							<article class='card type-{{card.type}}'>
-								<h4>{{card.title}}</h4>
-								<p class='user' data-userid='{{auth.user.uid}}'>{{card.created_by}}</p>
-								<p class='todo'>{{card.left_todo}}</p>
-							</article>
-						</li>
-					</ol>
+				<td ng-repeat='state in states' state='{{state}}' class='state state-{{state}}' droparea>
+					<article ng-repeat='card in cards | filter:{state:state}' class='card type-{{card.type}}' draggable id='{{card.$id}}'>
+						<h4>{{card.title}}</h4>
+						<p class='user' data-userid='{{auth.user.uid}}'>{{card.created_by}}</p>
+						<p class='todo'>{{card.left_todo}}</p>
+					</article>
 				</td>
 			</tr>
 		</table>

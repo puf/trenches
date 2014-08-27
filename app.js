@@ -31,17 +31,31 @@ app.controller('BoardCtrl', function($scope, $rootScope, $firebase, $routeParams
 	});
 	var cards = $firebase(ref.child('cards')).$asArray();
 	$scope.cards = cards;
-	cards.$loaded(function(data) {
-		$scope.cardsByState = [];
-		$scope.states.forEach(function(state) {
-			$scope.cardsByState[state] = [];
-			cards.forEach(function (card) {
-				if (card.state == state) {
-					$scope.cardsByState[state].push(card);
-				}
-			});
-		});		
-	});
+	$scope.updateCard = function(id, update) {
+		var sync = $firebase(ref.child('cards').child(id));
+		sync.$update(update);
+	}
+});
+
+app.directive('draggable', function($document) {
+	return function(scope, element, attr) {
+		element.attr('draggable', 'true');
+		element.bind('dragstart', function(event) {
+			event.dataTransfer.setData('text/plain', event.target.id)
+		});
+	}
+});
+app.directive('droparea', function() {
+	return function(scope, element, attr, ctrl) {
+		element.bind('dragover', function(event) {
+			event.preventDefault();
+		});
+		element.bind('drop', function(event) {
+			var id = event.dataTransfer.getData("text/plain");
+			var state = event.target.getAttribute('state');
+			scope.updateCard(id, { state: state });
+		});
+	}
 });
 
 // some non-angular helpers
