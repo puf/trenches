@@ -54,6 +54,7 @@ app.directive('droparea', function() {
 			var id = event.dataTransfer.getData("text/plain");
 			var state = event.target.getAttribute('state');
 			scope.updateCard(id, { state: state });
+			event.preventDefault();
 		});
 	}
 });
