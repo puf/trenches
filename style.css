@@ -40,11 +40,20 @@ ol.cards {
 }
 
 /* */
-table.board th.state, table.board td.state {
+table.board th.state {
 	width: 14em;
 	padding: 0em 1em;
 	text-transform: capitalize;
 	border: 1px dotted silver;
+}
+table.board td.state {
+	width: 14em;
+	padding: 0em 1em;
+	border: 1px dotted silver;
+}
+
+.card .edit-link {
+	float: right;
 }
 
 .draghandle {

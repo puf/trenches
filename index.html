@@ -13,20 +13,21 @@
 	<script src="app.js"></script>
 </head>
 <body>
-	<h1>
-		<i class='fa fa-credit-card' ></i> <a ng-href="/">Trenches</a>
-	</h1>
-	<div ng-controller="TrenchesCtrl" class='auth'>
-		<div ng-show="auth.user">
-			<p>Hello, {{auth.user.displayName}}</p>
-			<button ng-click="auth.$logout()">Logout</button>
-		</div>
-		<div ng-hide="auth.user">
-			<p>Welcome, please log in.</p>
-			<button ng-click="auth.$login('twitter')">Login with <i class='fa fa-twitter'> Twitter</i></button>
-			<button ng-click="auth.$login('github')">Login with <i class='fa fa-github'> GitHub</i></button>
-		</div>
+
+<h1>
+	<i class='fa fa-credit-card' ></i> <a ng-href="/">Trenches</a>
+</h1>
+<div ng-controller="TrenchesCtrl" class='auth'>
+	<div ng-show="auth.user">
+		<p>You are logged in as {{auth.user.displayName}}</p>
+		<button ng-click="auth.$logout()">Logout</button>
 	</div>
+	<div ng-hide="auth.user">
+		<p>Welcome, please log in.</p>
+		<button ng-click="auth.$login('twitter')">Login with <i class='fa fa-twitter'> Twitter</i></button>
+		<button ng-click="auth.$login('github')">Login with <i class='fa fa-github'> GitHub</i></button>
+	</div>
+</div>
 
 <div ng-view></div>
   
@@ -34,7 +35,7 @@
 <script type="text/ng-template" id="boards.html">
 	<h2>Boards</h2>
 	<div ng-controller='BoardListCtrl'>
-		<ul>
+		<ul class='boards'>
 			<li ng-repeat="board in boards"><a href='#/board/{{board.$id}}'>{{board.settings.title}}</a></li>
 		</ul>
 	</div>
@@ -50,8 +51,9 @@
 			<tr class='story'>
 				<td ng-repeat='state in states' state='{{state}}' class='state state-{{state}}' droparea>
 					<article ng-repeat='card in cards | filter:{state:state}' class='card type-{{card.type}}' draggable id='{{card.$id}}'>
+						<a href='#/board/{{$parent.boardId}}/card/{{card.$id}}'  ng-show="auth.user"><i class='edit-link fa fa-pencil'></i></a>
 						<h4>{{card.title}}</h4>
-						<p class='user' data-userid='{{auth.user.uid}}'>{{card.created_by}}</p>
+						<p class='user'>{{card.owned_by}}</p>
 						<p class='todo'>{{card.left_todo}}</p>
 					</article>
 				</td>
@@ -60,6 +62,14 @@
 	</div>
 </script>
 
+<script type="text/ng-template" id="card.html">
+	<h2><a href='#/board/{{boardId}}'>{{board.title}}</a></h2>
+	<div ng-controller='CardCtrl' ng-model='card' class='card'>
+		<h2>{{card.title}}</h2>
+		<label>Title: </label><input ng-model='card.title'></input>
+		<label>Todo: <label><input ng-model='card.left_todo'></input>
+	</div>
+</script>
 
 </body>
 </html>
