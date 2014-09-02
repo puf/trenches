@@ -52,9 +52,9 @@
 				<td ng-repeat='state in states' state='{{state}}' class='state state-{{state}}' droparea>
 					<article ng-repeat='card in cards | filter:{state:state}' class='card type-{{card.type}}' draggable id='{{card.$id}}'>
 						<a href='#/board/{{$parent.boardId}}/card/{{card.$id}}'  ng-show="auth.user"><i class='edit-link fa fa-pencil'></i></a>
-						<h4>{{card.title}}</h4>
+						<h4 ng-model='card.title' no_contenteditable ng-change='cards.$save(card)'>{{card.title}}</h4>
 						<p class='user'>{{card.owned_by}}</p>
-						<p class='todo'>{{card.left_todo}}</p>
+						<input class='todo' ng-model='card.left_todo' ng-change='cards.$save(card)'></input>
 					</article>
 				</td>
 			</tr>
