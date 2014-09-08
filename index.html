@@ -6,6 +6,7 @@
 	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css" rel="stylesheet"></link>
 	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.17/angular.js"></script>
 	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.17/angular-route.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.17/angular-sanitize.js"></script>
 	<script src="//cdn.firebase.com/js/client/1.0.18/firebase.js"></script>
 	<script src="//cdn.firebase.com/libs/angularfire/0.8.0/angularfire.js"></script>
 	<script src="//cdn.firebase.com/js/simple-login/1.6.3/firebase-simple-login.js"></script>
@@ -46,13 +47,13 @@
 		<h2>{{ settings.title }}</h2>
 		<table class='board'>
 			<tr class='head'>
-				<th class='state' ng-repeat='state in states'>{{state}}</th>
+				<th class='state' ng-repeat='state in states'>{{state}}<a ng-click='addCard(state)'><i class='add-card fa fa-plus'></i></a></th>
 			</tr>
 			<tr class='story'>
 				<td ng-repeat='state in states' state='{{state}}' class='state state-{{state}}' droparea>
 					<article ng-repeat='card in cards | filter:{state:state}' class='card type-{{card.type}}' draggable id='{{card.$id}}'>
-						<a href='#/board/{{$parent.boardId}}/card/{{card.$id}}'  ng-show="auth.user"><i class='edit-link fa fa-pencil'></i></a>
-						<h4 ng-model='card.title' no_contenteditable ng-change='cards.$save(card)'>{{card.title}}</h4>
+						<a href='#/board/{{$parent.boardId}}/card/{{card.$id}}' ng-show="auth.user"><i class='edit-card fa fa-pencil'></i></a>
+						<h4>{{card.title}}</h4>
 						<p class='user'>{{card.owned_by}}</p>
 						<input class='todo' ng-model='card.left_todo' ng-change='cards.$save(card)'></input>
 					</article>
@@ -64,11 +65,11 @@
 
 <script type="text/ng-template" id="card.html">
 	<h2><a href='#/board/{{boardId}}'>{{board.title}}</a></h2>
-	<div ng-controller='CardCtrl' ng-model='card' class='card'>
-		<h2>{{card.title}}</h2>
-		<label>Title: </label><input ng-model='card.title'></input>
-		<label>Todo: <label><input ng-model='card.left_todo'></input>
-	</div>
+	<article ng-controller='CardCtrl' ng-model='card' class='card type-{{card.type}}'>
+		<label>Title: </label><input ng-model='card.title' autofocus></input>
+		<label>Left todo: </label><input ng-model='card.left_todo'></input>
+		<button ng-click='removeCard(card.$id)'><i class='remove-card fa fa-times'></i> Delete</button>
+	</article>
 </script>
 
 </body>

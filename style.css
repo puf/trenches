@@ -68,11 +68,23 @@ table.board th.state {
 	padding: 0em 1em;
 	text-transform: capitalize;	
 }
-
-.card .edit-link {
+table.board th.state .add-card {
 	float: right;
+}
+
+.card .edit-card {
+	float: right;
+	padding-left: 2px;
+	cursor: pointer;
+}
+
+.card button {
+	position: absolute;
+	bottom: 0;
+	right: 0;
 }
 
 .draghandle {
 	float: right;
 }
+

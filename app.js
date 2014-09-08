@@ -10,14 +10,50 @@ app.config(['$routeProvider', function ($routeProvider) {
 app.factory('$firebaseAuth', function($firebase, $firebaseSimpleLogin, FBURL) {
 	return $firebaseSimpleLogin(new Firebase(FBURL));
 });
+app.factory('board', function($firebase, $firebaseAuth, FBURL, $routeParams) {
+	var ref = new Firebase(FBURL+"boards/"+$routeParams.boardId);	
+	var settings = $firebase(ref.child('settings')).$asObject();
+	settings.$loaded().then(function (settings) {
+		//states = settings.states.split(',');
+	});
+	var cards = $firebase(ref.child('cards')).$asArray();	
+	function getStates(callback) {
+		settings.$loaded().then(function(settings) {
+			callback(settings.state.split(','));
+		});
+	};
+	function updateCard(id, update) {
+		$firebaseAuth.$getCurrentUser().then(function(user) {
+			//console.log(user);
+			update.owned_by = user.username;
+			var sync = $firebase(ref.child('cards').child(id));
+			sync.$update(update);
+		});
+	};
+	function addCard(state, callback) {
+		$firebaseAuth.$getCurrentUser().then(function(user) {
+			var card = { created_by: user.username, created_at: Firebase.ServerValue.TIMESTAMP, state: state };
+			cards.$add(card).then(function(added) {
+				if (callback) callback(added);
+			});
+		});
+	};
+	function removeCard(id) {
+		return cards.$remove(cards.$getRecord(id));
+	};
+	return {
+		id: $routeParams.boardId,
+		settings: settings,
+		getStates: getStates,
+		cards: cards,
+		updateCard: updateCard,
+		addCard: addCard,
+		removeCard: removeCard
+	}
+});
 app.controller("TrenchesCtrl", function($scope, FBURL, $firebase, $firebaseAuth) {
 	var ref = new Firebase(FBURL);
-	// create an AngularFire reference to the data
-	var sync = $firebase(ref);
-	// download the data into a local object and turn it into a three-way binding
-	sync.$asObject().$bindTo($scope, 'data');
-
-	$scope.auth = $firebaseAuth; // TODO: store the simpleLogin in a service
+	$scope.auth = $firebaseAuth;
 });
 app.controller('BoardListCtrl', function BoardListCtrl($scope, $rootScope, FBURL, $firebase) {
 	$rootScope.title = 'Trenches';
@@ -25,35 +61,41 @@ app.controller('BoardListCtrl', function BoardListCtrl($scope, $rootScope, FBURL
 	var sync = $firebase(ref);
 	$scope.boards = sync.$asArray();
 });
-app.controller('BoardCtrl', function($scope, $rootScope, FBURL, $firebase, $firebaseAuth, $routeParams) {
-	var ref = new Firebase(FBURL+"boards/"+$routeParams.boardId);
-	
-	$scope.boardId = $routeParams.boardId;
-	var settings = $firebase(ref.child('settings')).$asObject();
-	settings.$bindTo($scope, 'settings').then(function () {
-		$scope.states = settings.states.split(',');
-		$rootScope.title = settings.title + ' - Trenches';
+app.controller('BoardCtrl', function($scope, $rootScope, FBURL, $firebase, $firebaseAuth, $location, $routeParams, board) {
+	$scope.boardId = board.id;
+	board.settings.$bindTo($scope, 'settings').then(function () {
+		$scope.states = board.settings.states.split(',');
+		$rootScope.title = board.settings.title + ' - Trenches';
 	});
-	var cards = $firebase(ref.child('cards')).$asArray();
-	$scope.cards = cards;
+	$scope.cards = board.cards;
 	$scope.auth = $firebaseAuth;
-	$scope.updateCard = function(id, update) {
-		$firebaseAuth.$getCurrentUser().then(function(user) {
-			update.owned_by = user.username;
-			var sync = $firebase(ref.child('cards').child(id));
-			sync.$update(update);
+	$scope.updateCard = board.updateCard;
+	$scope.addCard = function(state) {
+		board.addCard(state, function(card) {
+			$location.path('/board/'+$scope.boardId+'/card/'+card.name());
 		});
-	}
+	};
 });
-app.controller('CardCtrl', function($scope, $rootScope, FBURL, $firebase, $routeParams) {
+app.controller('CardCtrl', function($scope, $rootScope, FBURL, $firebase, $location, $routeParams, board) {
 	var ref = new Firebase(FBURL+"boards/"+$routeParams.boardId+'/cards/'+$routeParams.cardId);
 
 	$scope.boardId = $routeParams.boardId;
-	$scope.board = $firebase(new Firebase(FBURL+"boards/"+$routeParams.boardId+'/settings')).$asObject();
+	$scope.board = board.settings;
+
 	var card = $firebase(ref).$asObject();
 	card.$bindTo($scope, 'card').then(function() {
 		$rootScope.title = card.title + ' - Trenches';
 	});
+
+	$scope.removeCard = function() {
+		if (confirm("Are you sure you want to delete '"+card.title+"'?")) {
+			board.removeCard($routeParams.cardId).then(function() {
+				$location.path('/board/'+$scope.boardId);				
+			}, function (error) {
+				alert(error);
+			});
+		}
+	};
 });
 
 // Custom directive for handling drag-and-drop
@@ -100,6 +142,8 @@ app.directive('contenteditable', ['$sce', function($sce) {
       link: function(scope, element, attrs, ngModel) {
       	console.log('link');
         if(!ngModel) return; // do nothing if no ng-model
+        if(!ngModel.$viewValue) return;
+        console.log(ngModel);
 
         // Specify how UI should be updated
         ngModel.$render = function() {
@@ -136,9 +180,9 @@ function addSampleCards() {
 		cards.push({ title: 'First card', state: 'new', created_at: Firebase.ServerValue.TIMESTAMP });
 		setTimeout(function() {
 			cards.push({ title: 'Second card', state: 'working', created_at: Firebase.ServerValue.TIMESTAMP });
-		}, 5000);
+		}, 2500);
 		setTimeout(function() {
 			cards.push({ title: 'Third card', state: 'done', created_at: Firebase.ServerValue.TIMESTAMP });
-		}, 2500);
+		}, 5000);
 	});
 }
