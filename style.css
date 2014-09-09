@@ -19,7 +19,7 @@ ol.cards {
 	margin: 0;
 }
 
-.card input {
+.card input, .card select {
 	background-color: inherit;
 	border-style: dotted;
 	border-width: 1px;
@@ -88,3 +88,7 @@ table.board th.state .add-card {
 	float: right;
 }
 
+label {
+	float: left;
+	clear: both;
+}

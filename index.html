@@ -67,6 +67,7 @@
 	<h2><a href='#/board/{{boardId}}'>{{board.title}}</a></h2>
 	<article ng-controller='CardCtrl' ng-model='card' class='card type-{{card.type}}'>
 		<label>Title: </label><input ng-model='card.title' autofocus></input>
+		<label>Type: </label><select ng-model='card.type'><option ng-repeat='type in board.types'>{{type}}</option></select>
 		<label>Left todo: </label><input ng-model='card.left_todo'></input>
 		<button ng-click='removeCard(card.$id)'><i class='remove-card fa fa-times'></i> Delete</button>
 	</article>

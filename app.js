@@ -32,7 +32,7 @@ app.factory('board', function($firebase, $firebaseAuth, FBURL, $routeParams) {
 	};
 	function addCard(state, callback) {
 		$firebaseAuth.$getCurrentUser().then(function(user) {
-			var card = { created_by: user.username, created_at: Firebase.ServerValue.TIMESTAMP, state: state };
+			var card = { title: 'Card '+(cards.length+1), created_by: user.username, created_at: Firebase.ServerValue.TIMESTAMP, state: state };
 			cards.$add(card).then(function(added) {
 				if (callback) callback(added);
 			});
@@ -42,6 +42,7 @@ app.factory('board', function($firebase, $firebaseAuth, FBURL, $routeParams) {
 		return cards.$remove(cards.$getRecord(id));
 	};
 	return {
+		ref: ref,
 		id: $routeParams.boardId,
 		settings: settings,
 		getStates: getStates,
@@ -86,6 +87,9 @@ app.controller('CardCtrl', function($scope, $rootScope, FBURL, $firebase, $locat
 	card.$bindTo($scope, 'card').then(function() {
 		$rootScope.title = card.title + ' - Trenches';
 	});
+	//board.settings.$loaded().then(function(settings) {
+	//	$scope.types = settings.types.split(',');
+	//});
 
 	$scope.removeCard = function() {
 		if (confirm("Are you sure you want to delete '"+card.title+"'?")) {
