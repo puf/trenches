@@ -108,6 +108,7 @@ var isIE9 = (navigator.appVersion.indexOf('MSIE 9.0') >= 0);
 
 app.directive('draggable', function($document) {
 	return function(scope, element, attr) {
+		if (!scope.auth.user) return;
 		element.attr('draggable', 'true');
 		if (isIE9) {
 			element.prepend("<a class='draghandle' draggable='true' id='"+scope.card.$id+"' href='#'><i class='fa fa-arrows'></i></a>");

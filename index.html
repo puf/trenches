@@ -55,7 +55,7 @@
 						<a href='#/board/{{$parent.boardId}}/card/{{card.$id}}' ng-show="auth.user"><i class='edit-card fa fa-pencil'></i></a>
 						<h4>{{card.title}}</h4>
 						<p class='user'>{{card.owned_by}}</p>
-						<input class='todo' ng-model='card.left_todo' ng-change='cards.$save(card)'></input>
+						<input class='todo' ng-disabled='!auth.user' ng-model='card.left_todo' ng-change='cards.$save(card)'></input>
 					</article>
 				</td>
 			</tr>
