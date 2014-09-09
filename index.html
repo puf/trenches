@@ -47,7 +47,7 @@
 		<h2>{{ settings.title }}</h2>
 		<table class='board'>
 			<tr class='head'>
-				<th class='state' ng-repeat='state in states'>{{state}}<a ng-click='addCard(state)'><i class='add-card fa fa-plus'></i></a></th>
+				<th class='state' ng-repeat='state in states'>{{state}}<a ng-click='addCard(state)' ng-show='auth.user'><i class='add-card fa fa-plus'></i></a></th>
 			</tr>
 			<tr class='story'>
 				<td ng-repeat='state in states' state='{{state}}' class='state state-{{state}}' droparea>
