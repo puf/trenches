@@ -20,7 +20,7 @@
 </h1>
 <div ng-controller="TrenchesCtrl" class='auth'>
 	<div ng-show="auth.user">
-		<p>You are logged in as {{auth.user.displayName}}</p>
+		<p>You are logged in as <i class='fa fa-{{auth.user.provider}}'></i> {{auth.user.displayName}}</p>
 		<button ng-click="auth.$logout()">Logout</button>
 	</div>
 	<div ng-hide="auth.user">
@@ -44,14 +44,15 @@
 
 <script type="text/ng-template" id="board.html">
 	<div ng-controller='BoardCtrl'>
-		<h2>{{ settings.title }}</h2>
+		<h2>{{ settings.title }} <a href='#/board/{{$parent.boardId}}/admin' ng-show='auth.user && me.role == "owner"'><i class='fa fa-cog'></i></a></h2>
+
 		<table class='board'>
 			<tr class='head'>
-				<th class='state' ng-repeat='state in states'>{{state}}<a ng-click='addCard(state)' ng-show='auth.user'><i class='add-card fa fa-plus'></i></a></th>
+				<th class='state' ng-repeat='state in states'>{{state.$value}}<a ng-click='addCard(state)' ng-show='auth.user'><i class='add-card fa fa-plus'></i></a></th>
 			</tr>
 			<tr class='story'>
-				<td ng-repeat='state in states' state='{{state}}' class='state state-{{state}}' droparea>
-					<article ng-repeat='card in cards | filter:{state:state}' class='card type-{{card.type}}' draggable id='{{card.$id}}'>
+				<td ng-repeat='state in states' state='{{state.$value}}' class='state state-{{state.$value}}' droparea>
+					<article ng-repeat='card in cards | filter:{state:state.$value}' class='card type-{{card.type}}' draggable id='{{card.$id}}'>
 						<a href='#/board/{{$parent.boardId}}/card/{{card.$id}}' ng-show="auth.user"><i class='edit-card fa fa-pencil'></i></a>
 						<h4>{{card.title}}</h4>
 						<p class='user'>{{card.owned_by}}</p>
@@ -71,6 +72,14 @@
 		<label>Left todo: </label><input ng-model='card.left_todo'></input>
 		<button ng-click='removeCard(card.$id)'><i class='remove-card fa fa-times'></i> Delete</button>
 	</article>
+</script>
+
+<script type='text/ng-template' id='admin.html'>
+	<h2><a href='#/board/{{board.id}}'>{{board.settings.title}}</a> administration</h2>
+	<h3>Users</h3>
+	<ul>
+		<li ng-repeat='user in board.users'>{{user.$id}} - {{user.userName}} - {{user.displayName}} - {{user.role}}</li>
+	</ul>
 </script>
 
 </body>

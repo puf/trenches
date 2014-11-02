@@ -5,23 +5,19 @@ app.config(['$routeProvider', function ($routeProvider) {
 		.when('/', { templateUrl: 'boards.html', controller: 'BoardListCtrl' })
 		.when('/board/:boardId', { templateUrl: 'board.html', controller: 'BoardCtrl' })
 		.when('/board/:boardId/card/:cardId', { templateUrl: 'card.html', controller: 'CardCtrl' })
+		.when('/board/:boardId/admin', { templateUrl: 'admin.html', controller: 'AdminCtrl' })
 		.otherwise({ redirectTo: '/' });
 }]);
 app.factory('$firebaseAuth', function($firebase, $firebaseSimpleLogin, FBURL) {
-	return $firebaseSimpleLogin(new Firebase(FBURL));
+	var auth = $firebaseSimpleLogin(new Firebase(FBURL));
+	return auth;
 });
 app.factory('board', function($firebase, $firebaseAuth, FBURL, $routeParams) {
 	var ref = new Firebase(FBURL+"boards/"+$routeParams.boardId);	
 	var settings = $firebase(ref.child('settings')).$asObject();
-	settings.$loaded().then(function (settings) {
-		//states = settings.states.split(',');
-	});
 	var cards = $firebase(ref.child('cards')).$asArray();	
-	function getStates(callback) {
-		settings.$loaded().then(function(settings) {
-			callback(settings.state.split(','));
-		});
-	};
+	var states = $firebase(ref.child('states')).$asArray();
+	var users = $firebase(ref.child('users')).$asArray();
 	function updateCard(id, update) {
 		$firebaseAuth.$getCurrentUser().then(function(user) {
 			//console.log(user);
@@ -45,8 +41,9 @@ app.factory('board', function($firebase, $firebaseAuth, FBURL, $routeParams) {
 		ref: ref,
 		id: $routeParams.boardId,
 		settings: settings,
-		getStates: getStates,
+		states: states,
 		cards: cards,
+		users: users,
 		updateCard: updateCard,
 		addCard: addCard,
 		removeCard: removeCard
@@ -64,13 +61,16 @@ app.controller('BoardListCtrl', function BoardListCtrl($scope, $rootScope, FBURL
 });
 app.controller('BoardCtrl', function($scope, $rootScope, FBURL, $firebase, $firebaseAuth, $location, $routeParams, board) {
 	$scope.boardId = board.id;
+	$scope.states = board.states;
 	board.settings.$bindTo($scope, 'settings').then(function () {
-		$scope.states = board.settings.states.split(',');
 		$rootScope.title = board.settings.title + ' - Trenches';
 	});
 	$scope.cards = board.cards;
 	$scope.auth = $firebaseAuth;
 	$scope.updateCard = board.updateCard;
+	$firebaseAuth.$getCurrentUser().then(function(user) {
+		$scope.me = $firebase(board.ref.child('users/'+user.uid)).$asObject();
+	});
 	$scope.addCard = function(state) {
 		board.addCard(state, function(card) {
 			$location.path('/board/'+$scope.boardId+'/card/'+card.name());
@@ -87,9 +87,6 @@ app.controller('CardCtrl', function($scope, $rootScope, FBURL, $firebase, $locat
 	card.$bindTo($scope, 'card').then(function() {
 		$rootScope.title = card.title + ' - Trenches';
 	});
-	//board.settings.$loaded().then(function(settings) {
-	//	$scope.types = settings.types.split(',');
-	//});
 
 	$scope.removeCard = function() {
 		if (confirm("Are you sure you want to delete '"+card.title+"'?")) {
@@ -100,6 +97,9 @@ app.controller('CardCtrl', function($scope, $rootScope, FBURL, $firebase, $locat
 			});
 		}
 	};
+});
+app.controller('AdminCtrl', function($scope, $rootScope, board) {
+	$scope.board = board;
 });
 
 // Custom directive for handling drag-and-drop
