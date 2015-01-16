@@ -2,33 +2,32 @@ var app = angular.module("trenchesApp", ["ngRoute", "firebase"]);
 app.constant('FBURL', "https://trenches.firebaseio.com/");
 app.config(['$routeProvider', function ($routeProvider) {
 	$routeProvider
-		.when('/', { templateUrl: 'boards.html', controller: 'BoardListCtrl' })
-		.when('/board/:boardId', { templateUrl: 'board.html', controller: 'BoardCtrl' })
-		.when('/board/:boardId/card/:cardId', { templateUrl: 'card.html', controller: 'CardCtrl' })
-		.when('/board/:boardId/admin', { templateUrl: 'admin.html', controller: 'AdminCtrl' })
+		.when('/', { templateUrl: 'boards.html', controller: 'BoardListController' })
+		.when('/board/:boardId', { templateUrl: 'board.html', controller: 'BoardController' })
+		.when('/board/:boardId/card/:cardId', { templateUrl: 'card.html', controller: 'CardController' })
+		.when('/board/:boardId/admin', { templateUrl: 'admin.html', controller: 'AdminController' })
 		.otherwise({ redirectTo: '/' });
 }]);
-app.factory('$firebaseAuth', function($firebase, $firebaseSimpleLogin, FBURL) {
-	var auth = $firebaseSimpleLogin(new Firebase(FBURL));
-	return auth;
+app.factory('Auth', function(FBURL, $firebaseAuth) {
+	return $firebaseAuth(new Firebase(FBURL));
 });
-app.factory('board', function($firebase, $firebaseAuth, FBURL, $routeParams) {
+app.factory('board', function($firebase, Auth, FBURL, $routeParams) {
 	var ref = new Firebase(FBURL+"boards/"+$routeParams.boardId);	
 	var settings = $firebase(ref.child('settings')).$asObject();
 	var cards = $firebase(ref.child('cards')).$asArray();	
 	var states = $firebase(ref.child('states')).$asArray();
 	var users = $firebase(ref.child('users')).$asArray();
 	function updateCard(id, update) {
-		$firebaseAuth.$getCurrentUser().then(function(user) {
+		Auth.$requireAuth().then(function(user) {
 			//console.log(user);
-			update.owned_by = user.username;
+			update.owned_by = user[user.provider].username;
 			var sync = $firebase(ref.child('cards').child(id));
 			sync.$update(update);
 		});
 	};
 	function addCard(state, callback) {
-		$firebaseAuth.$getCurrentUser().then(function(user) {
-			var card = { title: 'Card '+(cards.length+1), created_by: user.username, created_at: Firebase.ServerValue.TIMESTAMP, state: state };
+		Auth.$requireAuth().then(function(user) {
+			var card = { title: 'Card '+(cards.length+1), created_by: user[user.provider].username, created_at: Firebase.ServerValue.TIMESTAMP, state: state.$value };
 			cards.$add(card).then(function(added) {
 				if (callback) callback(added);
 			});
@@ -49,35 +48,43 @@ app.factory('board', function($firebase, $firebaseAuth, FBURL, $routeParams) {
 		removeCard: removeCard
 	}
 });
-app.controller("TrenchesCtrl", function($scope, FBURL, $firebase, $firebaseAuth) {
-	var ref = new Firebase(FBURL);
-	$scope.auth = $firebaseAuth;
+app.controller("TrenchesController", function TrenchesController($scope, FBURL, $firebase, Auth, $timeout) {
+	$scope.auth = Auth;
+	$scope.user = Auth.$getAuth();
+	$scope.auth.$onAuth(function(authData) {
+		// user logged on or off -> update scope
+		$timeout(function() {
+			$scope.auth = Auth;
+			$scope.user = Auth.$getAuth();
+		});
+	});
 });
-app.controller('BoardListCtrl', function BoardListCtrl($scope, $rootScope, FBURL, $firebase) {
+app.controller('BoardListController', function BoardListController($scope, $rootScope, FBURL, $firebase) {
 	$rootScope.title = 'Trenches';
 	var ref = new Firebase(FBURL+"boards");
 	var sync = $firebase(ref);
 	$scope.boards = sync.$asArray();
 });
-app.controller('BoardCtrl', function($scope, $rootScope, FBURL, $firebase, $firebaseAuth, $location, $routeParams, board) {
+app.controller('BoardController', function BoardController($scope, $rootScope, FBURL, $firebase, Auth, $location, $routeParams, board) {
 	$scope.boardId = board.id;
 	$scope.states = board.states;
 	board.settings.$bindTo($scope, 'settings').then(function () {
 		$rootScope.title = board.settings.title + ' - Trenches';
 	});
 	$scope.cards = board.cards;
-	$scope.auth = $firebaseAuth;
+	$scope.auth = Auth; // TODO: figure out why this and next line are needed, since they should already be inherited from the scope of TrenchesController
+	$scope.user = Auth.$getAuth();
 	$scope.updateCard = board.updateCard;
-	$firebaseAuth.$getCurrentUser().then(function(user) {
+	Auth.$requireAuth().then(function(user) {
 		$scope.me = $firebase(board.ref.child('users/'+user.uid)).$asObject();
 	});
 	$scope.addCard = function(state) {
 		board.addCard(state, function(card) {
-			$location.path('/board/'+$scope.boardId+'/card/'+card.name());
+			$location.path('/board/'+$scope.boardId+'/card/'+card.key());
 		});
 	};
 });
-app.controller('CardCtrl', function($scope, $rootScope, FBURL, $firebase, $location, $routeParams, board) {
+app.controller('CardController', function CardController($scope, $rootScope, FBURL, $firebase, $location, $routeParams, board) {
 	var ref = new Firebase(FBURL+"boards/"+$routeParams.boardId+'/cards/'+$routeParams.cardId);
 
 	$scope.boardId = $routeParams.boardId;
@@ -98,7 +105,7 @@ app.controller('CardCtrl', function($scope, $rootScope, FBURL, $firebase, $locat
 		}
 	};
 });
-app.controller('AdminCtrl', function($scope, $rootScope, board) {
+app.controller('AdminController', function AdminController($scope, $rootScope, board) {
 	$scope.board = board;
 });
 
@@ -108,7 +115,7 @@ var isIE9 = (navigator.appVersion.indexOf('MSIE 9.0') >= 0);
 
 app.directive('draggable', function($document) {
 	return function(scope, element, attr) {
-		if (!scope.auth.user) return;
+		if (!scope.user) return;
 		element.attr('draggable', 'true');
 		if (isIE9) {
 			element.prepend("<a class='draghandle' draggable='true' id='"+scope.card.$id+"' href='#'><i class='fa fa-arrows'></i></a>");
