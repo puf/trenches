@@ -1,3 +1,6 @@
+// handy snippets for the JavaScript console:
+// 	angular.element(document.body).scope()
+// 	angular.element(document.body).injector().get('board')
 var app = angular.module("trenchesApp", ["ngRoute", "firebase"]);
 app.constant('FBURL', "https://trenches.firebaseio.com/");
 app.config(['$routeProvider', function ($routeProvider) {
